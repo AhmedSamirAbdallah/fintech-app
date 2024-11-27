@@ -8,7 +8,7 @@ type Account struct {
 	ID           string             `bson:"_id" json:"id"`
 	UserID       string             `bson:"userId" json:"userId"`
 	AccountName  string             `bson:"accountName" json:"accountName"`
-	status       enum.AccountStatus `bson:"status json: "status"`
+	Status       enum.AccountStatus `bson:"status" json:"status"`
 	Balance      float64            `bson:"balance" json:"balance"`
 	Transactions []Transaction      `bson:"transactions" json:"transactions"`
 }
