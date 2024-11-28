@@ -9,7 +9,7 @@ import (
 )
 
 func ConnectMongo() (*mongo.Client, error) {
-	mongoURI := "mongodb://admin:adminpassword@mongo-db:27017/?authSource=admin"
+	mongoURI := "mongodb://admin:adminpassword@localhost:27017/?authSource=admin"
 
 	clientOptions := options.Client().ApplyURI(mongoURI)
 
@@ -19,7 +19,7 @@ func ConnectMongo() (*mongo.Client, error) {
 		return nil, err
 	}
 
-	log.Println("Connection Sucess !")
+	log.Printf("Connection Sucess ! %v", client)
 
 	return client, nil
 }

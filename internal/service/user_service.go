@@ -7,13 +7,13 @@ import (
 )
 
 type UserService struct {
-	Repo *repository.UserRepository
+	UserRepo *repository.UserRepository
 }
 
 func (s *UserService) CreateUser(ctx context.Context, user model.User) error {
-	return s.Repo.CreateUser(ctx, user)
+	return s.UserRepo.CreateUser(ctx, user)
 }
 
 func (s *UserService) GetUserById(ctx context.Context, id string) (*model.User, error) {
-	return s.Repo.GetUserById(ctx, id)
+	return s.UserRepo.GetUserById(ctx, id)
 }

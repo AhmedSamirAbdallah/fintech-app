@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"fin-tech-app/internal/model"
+	"fmt"
 	"log"
 
 	"go.mongodb.org/mongo-driver/mongo"
@@ -15,16 +16,18 @@ type UserRepository struct {
 func (r *UserRepository) CreateUser(ctx context.Context, user model.User) error {
 
 	log.Printf("Inserting User: %v\n", user)
-	_, err := r.Collection.InsertOne(ctx, user)
+	result, err := r.Collection.InsertOne(ctx, user)
 
 	if err != nil {
 		// handle specific errors
 		// if mongo.IsDuplicateKeyError(err) {
 		// 	return fmt.Errorf("account already exists: %w", err)
 		// }
-		return err
+		return fmt.Errorf("failed to insert user %v: %w", user.ID, err)
 	}
-	log.Print("User created successfully")
+
+	log.Printf("User created successfully with ID: %v", result.InsertedID)
+
 	return nil
 
 }

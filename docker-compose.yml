@@ -9,6 +9,8 @@ services:
     environment:
       - MONGO_INITDB_ROOT_USERNAME=admin
       - MONGO_INITDB_ROOT_PASSWORD=adminpassword
+      - MONGO_INITDB_DATABASE=fintech  # Set the default database (optional, not required in this case)
+
     networks:
       - mongo-network
 
