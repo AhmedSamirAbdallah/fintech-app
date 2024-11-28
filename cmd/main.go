@@ -13,11 +13,10 @@ import (
 	"github.com/gorilla/mux"
 )
 
-func main() {
+func Init() (*mux.Router, error) {
 	client, err := db.ConnectMongo()
 	if err != nil {
 		log.Fatal("Failed to connect to MongoDB:", err)
-
 	}
 	fmt.Println("MongoDB client connected:", client)
 
@@ -39,7 +38,14 @@ func main() {
 	r := mux.NewRouter()
 
 	router.RegisterUserRoutes(r, userHandler)
+	return r, nil
+}
 
+func main() {
+	r, err := Init()
+	if err != nil {
+		log.Fatal(err)
+	}
 	log.Fatal(http.ListenAndServe(":8080", r))
 	fmt.Println("Server running on port 8080")
 
