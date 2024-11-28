@@ -23,7 +23,7 @@ func main() {
 
 	// Initialize the UserRepository with the MongoDB client
 	userRepo := &repository.UserRepository{
-		Collection: client.Database("fintech").Collection("users"), // use the correct database and collection name
+		Collection: client.Database("fintech").Collection("users"),
 	}
 
 	// Initialize the UserService with the UserRepository

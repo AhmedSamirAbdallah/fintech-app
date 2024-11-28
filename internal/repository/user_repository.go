@@ -41,3 +41,32 @@ func (r *UserRepository) GetUserById(ctx context.Context, id string) (*model.Use
 	}
 	return &user, nil
 }
+
+func (r *UserRepository) GetUsers(ctx context.Context) ([]model.User, error) {
+	var users []model.User
+	cursor, err := r.Collection.Find(ctx, map[string]interface{}{})
+	if err != nil {
+		log.Printf("Error fetching users %v", err)
+		return nil, err
+	}
+
+	defer cursor.Close(ctx)
+
+	for cursor.Next(ctx) {
+		var user model.User
+
+		err := cursor.Decode(&user)
+		if err != nil {
+			log.Printf("Error decoding user: %v", err)
+			return nil, err
+		}
+		users = append(users, user)
+	}
+	err = cursor.Err()
+	if err != nil {
+		log.Printf("Cursor iteration error: %v", err)
+		return nil, err
+	}
+	return users, err
+
+}

@@ -10,5 +10,6 @@ func RegisterUserRoutes(mux *mux.Router, userHandler *handlers.UserHandler) {
 
 	mux.HandleFunc("/api/users", userHandler.CreateUser).Methods("POST")
 	mux.HandleFunc("/api/users/{id}", userHandler.GetUserById).Methods("GET")
+	mux.HandleFunc("/api/users", userHandler.GetUsers).Methods("GET")
 
 }
