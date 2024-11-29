@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -26,7 +27,11 @@ func (r *AccountRepository) CreateAccount(ctx context.Context, account *model.Ac
 
 func (r *AccountRepository) GetAccountById(ctx context.Context, id string) (*model.Account, error) {
 	var account model.Account
-	err := r.Collection.FindOne(ctx, map[string]string{"_id": id}).Decode(&account)
+	objectID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return nil, fmt.Errorf("invalid ID format: %v", err)
+	}
+	err = r.Collection.FindOne(ctx, map[string]interface{}{"_id": objectID}).Decode(&account)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			return nil, fmt.Errorf("account with ID %v not found", id)

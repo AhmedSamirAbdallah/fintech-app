@@ -6,6 +6,8 @@ import (
 	"fin-tech-app/internal/service"
 	"log"
 	"net/http"
+
+	"github.com/gorilla/mux"
 )
 
 type AccountHandler struct {
@@ -28,7 +30,10 @@ func (h *AccountHandler) CreateAccount(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(account)
+	response := map[string]string{
+		"message": "Account created successfully",
+	}
+	json.NewEncoder(w).Encode(response)
 }
 
 func (h *AccountHandler) GetAccounts(w http.ResponseWriter, r *http.Request) {
@@ -39,12 +44,17 @@ func (h *AccountHandler) GetAccounts(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(accounts)
+	response := map[string]interface{}{
+		"message":  "Accounts retrieved successfully",
+		"accounts": accounts,
+	}
+	json.NewEncoder(w).Encode(response)
 
 }
 
 func (h *AccountHandler) GetAccountById(w http.ResponseWriter, r *http.Request) {
-	id := r.URL.Query().Get("id")
+	vars := mux.Vars(r)
+	id := vars["id"]
 	if id == "" {
 		http.Error(w, "ID is required", http.StatusBadRequest)
 		return
@@ -56,11 +66,17 @@ func (h *AccountHandler) GetAccountById(w http.ResponseWriter, r *http.Request) 
 	}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(account)
+	response := map[string]interface{}{
+		"message": "Account retrieved successfully",
+		"account": account,
+	}
+	json.NewEncoder(w).Encode(response)
 
 }
 
 func (h *AccountHandler) DeleteAccount(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	id := vars["id"]
 	err := h.AccountService.DeleteAccount(r.Context(), id)
 	if err != nil {
 		http.Error(w, "An unexpected error occurred", http.StatusInternalServerError)
@@ -68,6 +84,9 @@ func (h *AccountHandler) DeleteAccount(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(account)
-
+	response := map[string]string{
+		"message": "Account deleted successfully",
+		"id":      id,
+	}
+	json.NewEncoder(w).Encode(response)
 }

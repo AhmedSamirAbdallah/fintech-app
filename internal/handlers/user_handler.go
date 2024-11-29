@@ -6,6 +6,8 @@ import (
 	"fin-tech-app/internal/service"
 	"log"
 	"net/http"
+
+	"github.com/gorilla/mux"
 )
 
 type UserHandler struct {
@@ -28,11 +30,16 @@ func (h *UserHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(map[string]string{"message": "User created successfully"})
+	response := map[string]string{
+		"message": "User created successfully",
+	}
+	json.NewEncoder(w).Encode(response)
 }
 
 func (h *UserHandler) GetUserById(w http.ResponseWriter, r *http.Request) {
-	id := r.URL.Query().Get("id") //not query param but path
+	vars := mux.Vars(r)
+
+	id := vars["id"]
 	if id == "" {
 		http.Error(w, "ID is required", http.StatusBadRequest)
 		return
@@ -41,12 +48,17 @@ func (h *UserHandler) GetUserById(w http.ResponseWriter, r *http.Request) {
 	user, err := h.UserService.GetUserById(r.Context(), id)
 
 	if err != nil {
+		log.Printf("Error fetching user with ID %v: %v", id, err)
 		http.Error(w, "An unexpected error occurred", http.StatusInternalServerError)
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(user)
+	response := map[string]interface{}{
+		"message": "User retreived successfully",
+		"user":    user,
+	}
+	json.NewEncoder(w).Encode(response)
 }
 
 func (h *UserHandler) GetUsers(w http.ResponseWriter, r *http.Request) {
@@ -57,5 +69,9 @@ func (h *UserHandler) GetUsers(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(users)
+	response := map[string]interface{}{
+		"message": "User retreived successfully",
+		"users":   users,
+	}
+	json.NewEncoder(w).Encode(response)
 }

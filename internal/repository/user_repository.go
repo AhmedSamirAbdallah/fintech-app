@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -30,9 +31,13 @@ func (r *UserRepository) CreateUser(ctx context.Context, user model.User) error 
 
 func (r *UserRepository) GetUserById(ctx context.Context, id string) (*model.User, error) {
 	var user model.User
-
-	err := r.Collection.FindOne(ctx, map[string]string{"_id": id}).Decode(&user)
+	objectID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
+		return nil, fmt.Errorf("invalid ID format: %v", err)
+	}
+	err = r.Collection.FindOne(ctx, map[string]interface{}{"_id": objectID}).Decode(&user)
+	if err != nil {
+		log.Printf("Error fetching user with ID %v: %v", id, err)
 		if err == mongo.ErrNoDocuments {
 			return nil, fmt.Errorf("user with ID %v not found", id)
 		}
