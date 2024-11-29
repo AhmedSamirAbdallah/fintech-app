@@ -33,7 +33,10 @@ func (r *UserRepository) GetUserById(ctx context.Context, id string) (*model.Use
 
 	err := r.Collection.FindOne(ctx, map[string]string{"_id": id}).Decode(&user)
 	if err != nil {
-		return nil, err
+		if err == mongo.ErrNoDocuments {
+			return nil, fmt.Errorf("user with ID %v not found", id)
+		}
+		return nil, fmt.Errorf("failed to fetch user with ID %v: %w", id, err)
 	}
 	return &user, nil
 }

@@ -32,7 +32,7 @@ func (h *UserHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *UserHandler) GetUserById(w http.ResponseWriter, r *http.Request) {
-	id := r.URL.Query().Get("id")
+	id := r.URL.Query().Get("id") //not query param but path
 	if id == "" {
 		http.Error(w, "ID is required", http.StatusBadRequest)
 		return

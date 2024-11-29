@@ -13,7 +13,7 @@ type AccountRepository struct {
 	Collection *mongo.Collection
 }
 
-func (r *AccountRepository) CreateAccount(ctx context.Context, account model.Account) error {
+func (r *AccountRepository) CreateAccount(ctx context.Context, account *model.Account) error {
 
 	log.Printf("Inserting Account ... %v", account)
 	res, err := r.Collection.InsertOne(ctx, account)
@@ -28,6 +28,9 @@ func (r *AccountRepository) GetAccountById(ctx context.Context, id string) (*mod
 	var account model.Account
 	err := r.Collection.FindOne(ctx, map[string]string{"_id": id}).Decode(&account)
 	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return nil, fmt.Errorf("account with ID %v not found", id)
+		}
 		return nil, fmt.Errorf("failed to fetch account %v: %w", id, err)
 	}
 	return &account, nil
