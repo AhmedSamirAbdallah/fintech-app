@@ -83,3 +83,25 @@ func (r *AccountRepository) DeleteAccount(ctx context.Context, id string) error 
 	log.Printf("Account with ID %v successfully deleted", id)
 	return nil
 }
+
+func (r *AccountRepository) GetAccountBalance(ctx context.Context, id string) (float64, error) {
+	ObjecrID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return 0, fmt.Errorf("invalid ID format: %v", err)
+	}
+
+	filter := map[string]interface{}{
+		"_id": ObjecrID,
+	}
+	var account model.Account
+
+	err = r.Collection.FindOne(ctx, filter).Decode(&account)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return 0, fmt.Errorf("account with id %s not found", id)
+		}
+		return 0, fmt.Errorf("failed to get balance for account %s: %v", id, err)
+	}
+
+	return account.Balance, nil
+}

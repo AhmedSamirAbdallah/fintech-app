@@ -36,3 +36,7 @@ func (s *AccountService) GetAccounts(ctx context.Context) ([]model.Account, erro
 func (s *AccountService) DeleteAccount(ctx context.Context, id string) error {
 	return s.AccountRepo.DeleteAccount(ctx, id)
 }
+
+func (s *AccountService) GetAccountBalance(ctx context.Context, id string) (float64, error) {
+	return s.AccountRepo.GetAccountBalance(ctx, id)
+}

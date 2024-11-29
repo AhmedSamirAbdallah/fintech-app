@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fin-tech-app/internal/model"
 	"fin-tech-app/internal/service"
+	"fmt"
 	"log"
 	"net/http"
 
@@ -87,6 +88,23 @@ func (h *AccountHandler) DeleteAccount(w http.ResponseWriter, r *http.Request) {
 	response := map[string]string{
 		"message": "Account deleted successfully",
 		"id":      id,
+	}
+	json.NewEncoder(w).Encode(response)
+}
+
+func (h *AccountHandler) GetAccountBalance(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	id := vars["id"]
+	balance, err := h.AccountService.GetAccountBalance(r.Context(), id)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Failed to retrieve balance: %v", err), http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	response := map[string]interface{}{
+		"message": "Balance retrieved successfully",
+		"balance": balance,
 	}
 	json.NewEncoder(w).Encode(response)
 }
