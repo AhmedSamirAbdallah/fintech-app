@@ -19,10 +19,6 @@ func (r *UserRepository) CreateUser(ctx context.Context, user model.User) error 
 	result, err := r.Collection.InsertOne(ctx, user)
 
 	if err != nil {
-		// handle specific errors
-		// if mongo.IsDuplicateKeyError(err) {
-		// 	return fmt.Errorf("account already exists: %w", err)
-		// }
 		return fmt.Errorf("failed to insert user %v: %w", user.ID, err)
 	}
 
