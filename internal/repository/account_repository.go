@@ -60,14 +60,6 @@ func (r *AccountRepository) GetAccounts(ctx context.Context) ([]model.Account, e
 		}
 		accounts = append(accounts, account)
 	}
-	if !cursor.Next(ctx) {
-		err = cursor.Err()
-		if err != nil {
-			return nil, fmt.Errorf("error occurred while iterating over the cursor: %w", err)
-		}
-		return accounts, nil
-	}
-
 	return accounts, nil
 
 }
@@ -104,4 +96,37 @@ func (r *AccountRepository) GetAccountBalance(ctx context.Context, id string) (f
 	}
 
 	return account.Balance, nil
+}
+
+func (r *AccountRepository) UpdateAccount(ctx context.Context, id string, updatedAccount *model.Account) error {
+	objectId, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return fmt.Errorf("invalid ID format: %v", err)
+	}
+	updateFields := map[string]interface{}{}
+	if updatedAccount.Balance != 0 {
+		updateFields["balance"] = updatedAccount.Balance
+	}
+	if updatedAccount.Status != "" {
+		updateFields["status"] = updatedAccount.Status
+	}
+	if len(updateFields) == 0 {
+		return fmt.Errorf("no fields to update")
+	}
+	filter := map[string]interface{}{
+		"_id": objectId,
+	}
+	update := map[string]interface{}{
+		"$set": updateFields,
+	}
+	res, err := r.Collection.UpdateOne(ctx, filter, update)
+	if err != nil {
+		return fmt.Errorf("failed to update account with ID %v: %w", id, err)
+	}
+	if res.MatchedCount == 0 {
+		return fmt.Errorf("account with ID %v not found", id)
+	}
+	log.Printf("Account with ID %v successfully updated", id)
+
+	return nil
 }

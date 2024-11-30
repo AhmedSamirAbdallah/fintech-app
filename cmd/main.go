@@ -29,6 +29,10 @@ func Init() (*mux.Router, error) {
 		Collection: client.Database("fintech").Collection("accounts"),
 	}
 
+	transactionRepo := &repository.TransactionRepository{
+		Collection: client.Database("fintech").Collection("transactions"),
+	}
+
 	// Initialize the UserService with the UserRepository
 	userService := &service.UserService{
 		UserRepo: userRepo,
@@ -37,6 +41,11 @@ func Init() (*mux.Router, error) {
 	accountService := &service.AccountService{
 		AccountRepo: accountRepo,
 		UserRepo:    userRepo,
+	}
+
+	transactionService := &service.TransactionService{
+		TransactionRepository: transactionRepo,
+		AccountRepository:     accountRepo,
 	}
 
 	// Initialize the UserHandler with the UserService
@@ -48,10 +57,15 @@ func Init() (*mux.Router, error) {
 		AccountService: accountService,
 	}
 
+	transactionHandler := &handlers.TransactionHandler{
+		TransactionService: transactionService,
+	}
+
 	r := mux.NewRouter()
 
 	router.RegisterUserRoutes(r, userHandler)
 	router.RegisterAccountRoutes(r, accountHandler)
+	router.RegisterTranscationRoutes(r, transactionHandler)
 
 	return r, nil
 }

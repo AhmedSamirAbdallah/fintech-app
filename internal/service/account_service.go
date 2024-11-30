@@ -10,8 +10,9 @@ import (
 )
 
 type AccountService struct {
-	AccountRepo *repository.AccountRepository
-	UserRepo    *repository.UserRepository
+	AccountRepo     *repository.AccountRepository
+	UserRepo        *repository.UserRepository
+	TransactionRepo *repository.TransactionRepository
 }
 
 func (s *AccountService) CreateAccount(ctx context.Context, account *model.Account) error {
@@ -39,4 +40,8 @@ func (s *AccountService) DeleteAccount(ctx context.Context, id string) error {
 
 func (s *AccountService) GetAccountBalance(ctx context.Context, id string) (float64, error) {
 	return s.AccountRepo.GetAccountBalance(ctx, id)
+}
+
+func (s *AccountService) UpdateAccount(ctx context.Context, id string, updatedAccount *model.Account) error {
+	return s.AccountRepo.UpdateAccount(ctx, id, updatedAccount)
 }

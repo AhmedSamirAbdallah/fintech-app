@@ -108,3 +108,21 @@ func (h *AccountHandler) GetAccountBalance(w http.ResponseWriter, r *http.Reques
 	}
 	json.NewEncoder(w).Encode(response)
 }
+
+func (h *AccountHandler) UpdateAccount(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	id := vars["id"]
+	var account model.Account
+	json.NewDecoder(r.Body).Decode(&account)
+	err := h.AccountService.UpdateAccount(r.Context(), id, &account)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("Failed to update account: %v", err), http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	response := map[string]interface{}{
+		"message": "Account updated successfully",
+	}
+	json.NewEncoder(w).Encode(response)
+}

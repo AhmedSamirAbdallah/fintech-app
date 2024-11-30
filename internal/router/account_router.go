@@ -12,4 +12,5 @@ func RegisterAccountRoutes(mux *mux.Router, accountHandler *handlers.AccountHand
 	mux.HandleFunc("/api/accounts", accountHandler.GetAccounts).Methods("GET")
 	mux.HandleFunc("/api/accounts/{id}/balance", accountHandler.GetAccountBalance).Methods("GET")
 	mux.HandleFunc("/api/accounts/{id}", accountHandler.DeleteAccount).Methods("DELETE")
+	mux.HandleFunc("/api/accounts/{id}", accountHandler.UpdateAccount).Methods("PUT")
 }
