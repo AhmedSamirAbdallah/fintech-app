@@ -6,6 +6,7 @@ import (
 	"fin-tech-app/internal/repository"
 	"fin-tech-app/internal/router"
 	"fin-tech-app/internal/service"
+	"fin-tech-app/utils"
 	"fmt"
 	"log"
 	"net/http"
@@ -67,6 +68,7 @@ func Init() (*mux.Router, error) {
 	router.RegisterUserRoutes(r, userHandler)
 	router.RegisterAccountRoutes(r, accountHandler)
 	router.RegisterTranscationRoutes(r, transactionHandler)
+	utils.RegisterHealthCheckRoutes(r)
 
 	return r, nil
 }
