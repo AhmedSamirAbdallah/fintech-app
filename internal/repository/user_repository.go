@@ -11,13 +11,19 @@ import (
 )
 
 type UserRepository struct {
-	Collection *mongo.Collection
+	Collection *mongo.Database
+}
+
+func (r *UserRepository) getUsersCollection() *mongo.Collection {
+	return r.Collection.Collection("users")
 }
 
 func (r *UserRepository) CreateUser(ctx context.Context, user model.User) error {
+	// SELECT the collection needed for the usecase
+	usersCollection := r.getUsersCollection()
 
 	log.Printf("Inserting User: %v\n", user)
-	result, err := r.Collection.InsertOne(ctx, user)
+	result, err := usersCollection.InsertOne(ctx, user)
 
 	if err != nil {
 		return fmt.Errorf("failed to insert user %v: %w", user.ID, err)
@@ -35,7 +41,8 @@ func (r *UserRepository) GetUserById(ctx context.Context, id string) (*model.Use
 	if err != nil {
 		return nil, fmt.Errorf("invalid ID format: %v", err)
 	}
-	err = r.Collection.FindOne(ctx, map[string]interface{}{"_id": objectID}).Decode(&user)
+	usersCollection := r.getUsersCollection()
+	err = usersCollection.FindOne(ctx, map[string]interface{}{"_id": objectID}).Decode(&user)
 	if err != nil {
 		log.Printf("Error fetching user with ID %v: %v", id, err)
 		if err == mongo.ErrNoDocuments {
@@ -48,7 +55,9 @@ func (r *UserRepository) GetUserById(ctx context.Context, id string) (*model.Use
 
 func (r *UserRepository) GetUsers(ctx context.Context) ([]model.User, error) {
 	var users []model.User
-	cursor, err := r.Collection.Find(ctx, map[string]interface{}{})
+	usersCollection := r.getUsersCollection()
+
+	cursor, err := usersCollection.Find(ctx, map[string]interface{}{})
 	if err != nil {
 		log.Printf("Error fetching users %v", err)
 		return nil, err

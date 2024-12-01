@@ -21,16 +21,17 @@ func Init() (*mux.Router, error) {
 	fmt.Println("MongoDB client connected:", client)
 
 	// Initialize the UserRepository with the MongoDB client
+	// TO PASS THE DATABASE REF
 	userRepo := &repository.UserRepository{
-		Collection: client.Database("fintech").Collection("users"),
+		Collection: client.Database("fintech"),
 	}
 
 	accountRepo := &repository.AccountRepository{
-		Collection: client.Database("fintech").Collection("accounts"),
+		Collection: client.Database("fintech"),
 	}
 
 	transactionRepo := &repository.TransactionRepository{
-		Collection: client.Database("fintech").Collection("transactions"),
+		Collection: client.Database("fintech"),
 	}
 
 	// Initialize the UserService with the UserRepository

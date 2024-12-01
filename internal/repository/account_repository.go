@@ -11,13 +11,19 @@ import (
 )
 
 type AccountRepository struct {
-	Collection *mongo.Collection
+	Collection *mongo.Database
+}
+
+func (r *AccountRepository) getAccountsCollection() *mongo.Collection {
+	return r.Collection.Collection("accounts")
 }
 
 func (r *AccountRepository) CreateAccount(ctx context.Context, account *model.Account) error {
 
 	log.Printf("Inserting Account ... %v", account)
-	res, err := r.Collection.InsertOne(ctx, account)
+	accountCollection := r.getAccountsCollection()
+
+	res, err := accountCollection.InsertOne(ctx, account)
 	if err != nil {
 		return fmt.Errorf("failed to insert account %v: %w", account.ID, err)
 	}
@@ -31,7 +37,9 @@ func (r *AccountRepository) GetAccountById(ctx context.Context, id string) (*mod
 	if err != nil {
 		return nil, fmt.Errorf("invalid ID format: %v", err)
 	}
-	err = r.Collection.FindOne(ctx, map[string]interface{}{"_id": objectID}).Decode(&account)
+	accountCollection := r.getAccountsCollection()
+
+	err = accountCollection.FindOne(ctx, map[string]interface{}{"_id": objectID}).Decode(&account)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			return nil, fmt.Errorf("account with ID %v not found", id)
@@ -43,8 +51,9 @@ func (r *AccountRepository) GetAccountById(ctx context.Context, id string) (*mod
 
 func (r *AccountRepository) GetAccounts(ctx context.Context) ([]model.Account, error) {
 	var accounts []model.Account
+	accountCollection := r.getAccountsCollection()
 
-	cursor, err := r.Collection.Find(ctx, map[string]interface{}{})
+	cursor, err := accountCollection.Find(ctx, map[string]interface{}{})
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch accounts %w", err)
 	}
@@ -65,7 +74,8 @@ func (r *AccountRepository) GetAccounts(ctx context.Context) ([]model.Account, e
 }
 
 func (r *AccountRepository) DeleteAccount(ctx context.Context, id string) error {
-	res, err := r.Collection.DeleteOne(ctx, map[string]string{"_id": id})
+	accountCollection := r.getAccountsCollection()
+	res, err := accountCollection.DeleteOne(ctx, map[string]string{"_id": id})
 	if err != nil {
 		return fmt.Errorf("failed to delete account with ID %v: %w", id, err)
 	}
@@ -86,8 +96,9 @@ func (r *AccountRepository) GetAccountBalance(ctx context.Context, id string) (f
 		"_id": ObjecrID,
 	}
 	var account model.Account
+	accountCollection := r.getAccountsCollection()
 
-	err = r.Collection.FindOne(ctx, filter).Decode(&account)
+	err = accountCollection.FindOne(ctx, filter).Decode(&account)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			return 0, fmt.Errorf("account with id %s not found", id)
@@ -119,7 +130,8 @@ func (r *AccountRepository) UpdateAccount(ctx context.Context, id string, update
 	update := map[string]interface{}{
 		"$set": updateFields,
 	}
-	res, err := r.Collection.UpdateOne(ctx, filter, update)
+	accountCollection := r.getAccountsCollection()
+	res, err := accountCollection.UpdateOne(ctx, filter, update)
 	if err != nil {
 		return fmt.Errorf("failed to update account with ID %v: %w", id, err)
 	}

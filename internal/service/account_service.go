@@ -10,9 +10,8 @@ import (
 )
 
 type AccountService struct {
-	AccountRepo     *repository.AccountRepository
-	UserRepo        *repository.UserRepository
-	TransactionRepo *repository.TransactionRepository
+	AccountRepo *repository.AccountRepository
+	UserRepo    *repository.UserRepository
 }
 
 func (s *AccountService) CreateAccount(ctx context.Context, account *model.Account) error {

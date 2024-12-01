@@ -10,12 +10,19 @@ import (
 )
 
 type TransactionRepository struct {
-	Collection *mongo.Collection
+	Collection *mongo.Database
+}
+
+func (r *TransactionRepository) getTransactionsCollection() *mongo.Collection {
+	return r.Collection.Collection("transactions")
 }
 
 func (r *TransactionRepository) CreateTransaction(ctx context.Context, transaction *model.Transaction) error {
 	log.Printf("Inserting Transaction ... %v", transaction)
-	res, err := r.Collection.InsertOne(ctx, &transaction)
+
+	transactionCollection := r.getTransactionsCollection()
+
+	res, err := transactionCollection.InsertOne(ctx, &transaction)
 	if err != nil {
 		return fmt.Errorf("failed to insert transaction %v: %w", transaction.ID, err)
 	}
@@ -25,8 +32,8 @@ func (r *TransactionRepository) CreateTransaction(ctx context.Context, transacti
 
 func (r *TransactionRepository) GetTransactions(ctx context.Context) ([]model.Transaction, error) {
 	filter := map[string]interface{}{}
-
-	cursor, err := r.Collection.Find(ctx, filter)
+	transactionCollection := r.getTransactionsCollection()
+	cursor, err := transactionCollection.Find(ctx, filter)
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch transactions %w", err)
 
