@@ -44,6 +44,15 @@ func CheckDatabase() (*mongo.Client, bool) {
 
 func CheckReadOnDB(client *mongo.Client) bool {
 
+	collection := client.Database("fintech").Collection("healthcheck")
+
+	var result HealthCheck
+	err := collection.FindOne(context.Background(), map[string]interface{}{}).Decode(&result)
+
+	if err != nil {
+		log.Printf("Error reading from healthcheck collection: %v", err)
+		return false
+	}
 	return true
 }
 
@@ -98,12 +107,3 @@ func HealthCheckHandler(w http.ResponseWriter, r *http.Request) {
 func RegisterHealthCheckRoutes(mux *mux.Router) {
 	mux.HandleFunc("/api/health-check", HealthCheckHandler)
 }
-
-// {
-// 	"status": "OK",
-// 	"uptime": "2h45m",
-// 	"dependencies": {
-// 	  "database": "connected",
-// 	  "cache": "connected"
-// 	}
-//   }
