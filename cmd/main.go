@@ -4,6 +4,7 @@ import (
 	"fin-tech-app/config"
 	"fin-tech-app/internal/db"
 	"fin-tech-app/internal/handlers"
+	"fin-tech-app/internal/kafka"
 	"fin-tech-app/internal/repository"
 	"fin-tech-app/internal/router"
 	"fin-tech-app/internal/service"
@@ -25,7 +26,14 @@ func Init() (*mux.Router, error) {
 		log.Fatal("Failed to connect to MongoDB:", err)
 	}
 	fmt.Println("MongoDB client connected:", client)
-
+	producer, err := kafka.CreateProducer(config.KafkaBroker)
+	if err != nil {
+		log.Printf("this error %v", err)
+	}
+	err = kafka.SendMessage(producer, config.KafkaTopic, "hello health check")
+	if err != nil {
+		log.Printf("can't send")
+	}
 	userRepo := repository.NewUserRepository(client, config.DatabaseName)
 	accountRepo := repository.NewAccountRepository(client, config.DatabaseName)
 	transactionRepo := repository.NewTransactionRepository(client, config.DatabaseName)
@@ -39,7 +47,6 @@ func Init() (*mux.Router, error) {
 	transactionHandler := handlers.NewTransactionHandler(transactionService)
 
 	r := mux.NewRouter()
-
 	router.RegisterUserRoutes(r, userHandler)
 	router.RegisterAccountRoutes(r, accountHandler)
 	router.RegisterTranscationRoutes(r, transactionHandler)
