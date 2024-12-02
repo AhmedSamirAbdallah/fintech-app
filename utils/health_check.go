@@ -26,13 +26,11 @@ type HealthCheckResponse struct {
 }
 
 func CheckDatabase(client *mongo.Client) bool {
-
 	err := client.Ping(context.Background(), readpref.Primary())
 	if err != nil {
 		log.Printf("Error pinging MongoDB: %v", err)
 		return false
 	}
-
 	return true
 }
 
