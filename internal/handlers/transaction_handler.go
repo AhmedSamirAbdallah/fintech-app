@@ -13,6 +13,12 @@ type TransactionHandler struct {
 	TransactionService *service.TransactionService
 }
 
+func NewTransactionHandler(transactionService *service.TransactionService) *TransactionHandler {
+	return &TransactionHandler{
+		TransactionService: transactionService,
+	}
+}
+
 func (h *TransactionHandler) CreateDeposite(w http.ResponseWriter, r *http.Request) {
 	var transaction model.Transaction
 	err := json.NewDecoder(r.Body).Decode(&transaction)

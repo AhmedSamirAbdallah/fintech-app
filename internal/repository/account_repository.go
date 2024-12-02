@@ -14,6 +14,12 @@ type AccountRepository struct {
 	Collection *mongo.Database
 }
 
+func NewAccountRepository(client *mongo.Client, databaseName string) *AccountRepository {
+	return &AccountRepository{
+		Collection: client.Database(databaseName),
+	}
+}
+
 func (r *AccountRepository) getAccountsCollection() *mongo.Collection {
 	return r.Collection.Collection("accounts")
 }

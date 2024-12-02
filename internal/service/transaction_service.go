@@ -13,6 +13,13 @@ type TransactionService struct {
 	AccountRepository     *repository.AccountRepository
 }
 
+func NewTransactionService(transactionRepo *repository.TransactionRepository, accountRepo *repository.AccountRepository) *TransactionService {
+	return &TransactionService{
+		TransactionRepository: transactionRepo,
+		AccountRepository:     accountRepo,
+	}
+}
+
 func (s *TransactionService) CreateDeposite(ctx context.Context, transaction *model.Transaction) error {
 	balance, err := s.AccountRepository.GetAccountBalance(ctx, transaction.AccountID)
 	if err != nil {

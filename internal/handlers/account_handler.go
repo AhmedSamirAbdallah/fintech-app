@@ -15,6 +15,12 @@ type AccountHandler struct {
 	AccountService *service.AccountService
 }
 
+func NewAccountHandler(accountService *service.AccountService) *AccountHandler {
+	return &AccountHandler{
+		AccountService: accountService,
+	}
+}
+
 func (h *AccountHandler) CreateAccount(w http.ResponseWriter, r *http.Request) {
 	var account model.Account
 

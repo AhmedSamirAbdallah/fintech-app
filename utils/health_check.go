@@ -64,6 +64,11 @@ func CheckKafka() bool {
 	return true
 }
 
+func CheckProduce() {
+
+}
+func CheckConsume() {}
+
 func HealthCheckHandler(client *mongo.Client, config *config.Config) http.HandlerFunc {
 
 	return func(w http.ResponseWriter, r *http.Request) {

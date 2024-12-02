@@ -13,6 +13,12 @@ type TransactionRepository struct {
 	Collection *mongo.Database
 }
 
+func NewTransactionRepository(client *mongo.Client, databaseName string) *TransactionRepository {
+	return &TransactionRepository{
+		Collection: client.Database(databaseName),
+	}
+}
+
 func (r *TransactionRepository) getTransactionsCollection() *mongo.Collection {
 	return r.Collection.Collection("transactions")
 }

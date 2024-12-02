@@ -14,6 +14,12 @@ type UserHandler struct {
 	UserService *service.UserService
 }
 
+func NewUserHandler(userService *service.UserService) *UserHandler {
+	return &UserHandler{
+		UserService: userService,
+	}
+}
+
 func (h *UserHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
 	var user model.User
 

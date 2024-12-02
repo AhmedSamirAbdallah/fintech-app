@@ -26,43 +26,17 @@ func Init() (*mux.Router, error) {
 	}
 	fmt.Println("MongoDB client connected:", client)
 
-	userRepo := &repository.UserRepository{
-		Collection: client.Database(config.DatabaseName),
-	}
+	userRepo := repository.NewUserRepository(client, config.DatabaseName)
+	accountRepo := repository.NewAccountRepository(client, config.DatabaseName)
+	transactionRepo := repository.NewTransactionRepository(client, config.DatabaseName)
 
-	accountRepo := &repository.AccountRepository{
-		Collection: client.Database(config.DatabaseName),
-	}
+	userService := service.NewUserService(userRepo)
+	accountService := service.NewAccountService(accountRepo, userRepo)
+	transactionService := service.NewTransactionService(transactionRepo, accountRepo)
 
-	transactionRepo := &repository.TransactionRepository{
-		Collection: client.Database(config.DatabaseName),
-	}
-
-	userService := &service.UserService{
-		UserRepo: userRepo,
-	}
-
-	accountService := &service.AccountService{
-		AccountRepo: accountRepo,
-		UserRepo:    userRepo,
-	}
-
-	transactionService := &service.TransactionService{
-		TransactionRepository: transactionRepo,
-		AccountRepository:     accountRepo,
-	}
-
-	userHandler := &handlers.UserHandler{
-		UserService: userService,
-	}
-
-	accountHandler := &handlers.AccountHandler{
-		AccountService: accountService,
-	}
-
-	transactionHandler := &handlers.TransactionHandler{
-		TransactionService: transactionService,
-	}
+	userHandler := handlers.NewUserHandler(userService)
+	accountHandler := handlers.NewAccountHandler(accountService)
+	transactionHandler := handlers.NewTransactionHandler(transactionService)
 
 	r := mux.NewRouter()
 

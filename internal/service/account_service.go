@@ -14,6 +14,13 @@ type AccountService struct {
 	UserRepo    *repository.UserRepository
 }
 
+func NewAccountService(AccountRepo *repository.AccountRepository, UserRepo *repository.UserRepository) *AccountService {
+	return &AccountService{
+		AccountRepo: AccountRepo,
+		UserRepo:    UserRepo,
+	}
+}
+
 func (s *AccountService) CreateAccount(ctx context.Context, account *model.Account) error {
 	_, err := s.UserRepo.GetUserById(ctx, account.UserID)
 	if err != nil {

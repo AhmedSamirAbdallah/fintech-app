@@ -14,12 +14,17 @@ type UserRepository struct {
 	Collection *mongo.Database
 }
 
+func NewUserRepository(client *mongo.Client, databaseName string) *UserRepository {
+	return &UserRepository{
+		Collection: client.Database(databaseName),
+	}
+}
+
 func (r *UserRepository) getUsersCollection() *mongo.Collection {
 	return r.Collection.Collection("users")
 }
 
 func (r *UserRepository) CreateUser(ctx context.Context, user model.User) error {
-	// SELECT the collection needed for the usecase
 	usersCollection := r.getUsersCollection()
 
 	log.Printf("Inserting User: %v\n", user)
