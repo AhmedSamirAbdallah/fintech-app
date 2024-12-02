@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fin-tech-app/config"
 	"fin-tech-app/internal/db"
 	"fin-tech-app/internal/handlers"
 	"fin-tech-app/internal/repository"
@@ -15,27 +16,28 @@ import (
 )
 
 func Init() (*mux.Router, error) {
-	client, err := db.ConnectMongo()
+	config, err := config.LoadConfig()
+	if err != nil {
+		log.Printf("Error loading environment file: %v\n", err)
+	}
+	client, err := db.ConnectMongo(config.MongoURI)
 	if err != nil {
 		log.Fatal("Failed to connect to MongoDB:", err)
 	}
 	fmt.Println("MongoDB client connected:", client)
 
-	// Initialize the UserRepository with the MongoDB client
-	// TO PASS THE DATABASE REF
 	userRepo := &repository.UserRepository{
-		Collection: client.Database("fintech"),
+		Collection: client.Database(config.DatabaseName),
 	}
 
 	accountRepo := &repository.AccountRepository{
-		Collection: client.Database("fintech"),
+		Collection: client.Database(config.DatabaseName),
 	}
 
 	transactionRepo := &repository.TransactionRepository{
-		Collection: client.Database("fintech"),
+		Collection: client.Database(config.DatabaseName),
 	}
 
-	// Initialize the UserService with the UserRepository
 	userService := &service.UserService{
 		UserRepo: userRepo,
 	}
@@ -50,7 +52,6 @@ func Init() (*mux.Router, error) {
 		AccountRepository:     accountRepo,
 	}
 
-	// Initialize the UserHandler with the UserService
 	userHandler := &handlers.UserHandler{
 		UserService: userService,
 	}
@@ -68,7 +69,7 @@ func Init() (*mux.Router, error) {
 	router.RegisterUserRoutes(r, userHandler)
 	router.RegisterAccountRoutes(r, accountHandler)
 	router.RegisterTranscationRoutes(r, transactionHandler)
-	utils.RegisterHealthCheckRoutes(r)
+	utils.RegisterHealthCheckRoutes(r, client, config)
 
 	return r, nil
 }

@@ -3,7 +3,7 @@ package utils
 import (
 	"context"
 	"encoding/json"
-	"fin-tech-app/internal/db"
+	"fin-tech-app/config"
 	"log"
 	"net/http"
 	"time"
@@ -25,41 +25,33 @@ type HealthCheckResponse struct {
 	Dependancies map[string]interface{} `json:"dependancies"`
 }
 
-func CheckDatabase() (*mongo.Client, bool) {
+func CheckDatabase(client *mongo.Client) bool {
 
-	client, err := db.ConnectMongo()
-	if err != nil {
-		log.Printf("Error connecting to MongoDB: %v", err)
-		return nil, false
-	}
-
-	err = client.Ping(context.Background(), readpref.Primary())
+	err := client.Ping(context.Background(), readpref.Primary())
 	if err != nil {
 		log.Printf("Error pinging MongoDB: %v", err)
-		return nil, false
+		return false
 	}
 
-	return client, true
+	return true
 }
 
-func CheckReadOnDB(client *mongo.Client) bool {
-
-	collection := client.Database("fintech").Collection("healthcheck")
-
+func CheckReadOnDB(client *mongo.Client, databaseName string) bool {
+	collection := client.Database(databaseName).Collection("healthcheck")
 	var result HealthCheck
 	err := collection.FindOne(context.Background(), map[string]interface{}{}).Decode(&result)
-
 	if err != nil {
 		log.Printf("Error reading from healthcheck collection: %v", err)
 		return false
 	}
+	log.Printf("%v", result)
 	return true
 }
 
-func CheckWriteOnDB(client *mongo.Client) bool {
-	collection := client.Database("fintech").Collection("healthcheck")
+func CheckWriteOnDB(client *mongo.Client, databaseName string) bool {
+	collection := client.Database(databaseName).Collection("healthcheck")
 	healthCheck := HealthCheck{
-		Service:   "fintech",
+		Service:   "healthcheck",
 		Timestamp: time.Now().UTC().Format(time.RFC3339),
 	}
 
@@ -68,42 +60,38 @@ func CheckWriteOnDB(client *mongo.Client) bool {
 		log.Printf("Error writing to healthcheck collection: %v", err)
 		return false
 	}
-	// _, err = collection.DeleteOne(context.Background(), )
-	// if err != nil {
-	// 	log.Printf("Error deleting test document from healthcheck collection: %v", err)
-	// 	return false
-	// }
 	return true
-
 }
 func CheckKafka() bool {
 	return true
 }
 
-func HealthCheckHandler(w http.ResponseWriter, r *http.Request) {
-	kafkaStatus := CheckKafka()
-	upTime := time.Now().String()
-	client, dbConnection := CheckDatabase()
+func HealthCheckHandler(client *mongo.Client, config *config.Config) http.HandlerFunc {
 
-	dbStatus := map[string]interface{}{
-		"connection": dbConnection,
-		"read":       CheckReadOnDB(client),
-		"write":      CheckWriteOnDB(client),
-	}
+	return func(w http.ResponseWriter, r *http.Request) {
+		kafkaStatus := CheckKafka()
+		upTime := time.Now().String()
 
-	response := HealthCheckResponse{
-		Status: "UP",
-		UpTime: upTime,
-		Dependancies: map[string]interface{}{
-			"database": dbStatus,
-			"kafka":    kafkaStatus,
-		},
+		dbStatus := map[string]interface{}{
+			"connection": CheckDatabase(client),
+			"read":       CheckReadOnDB(client, config.DatabaseName),
+			"write":      CheckWriteOnDB(client, config.DatabaseName),
+		}
+
+		response := HealthCheckResponse{
+			Status: "UP",
+			UpTime: upTime,
+			Dependancies: map[string]interface{}{
+				"database": dbStatus,
+				"kafka":    kafkaStatus,
+			},
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(response)
 	}
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(response)
 }
 
-func RegisterHealthCheckRoutes(mux *mux.Router) {
-	mux.HandleFunc("/api/health-check", HealthCheckHandler)
+func RegisterHealthCheckRoutes(mux *mux.Router, client *mongo.Client, config *config.Config) {
+	mux.HandleFunc("/api/health-check", HealthCheckHandler(client, config))
 }
