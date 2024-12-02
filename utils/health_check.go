@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fin-tech-app/config"
+	"fin-tech-app/internal/kafka"
 	"log"
 	"net/http"
 	"strings"
@@ -85,21 +86,40 @@ func CheckKafka(brokers string) bool {
 	return true
 }
 
-func CheckProduce() {
-
+func CheckProduce(brokers string, topic string) bool {
+	producer, err := kafka.CreateProducer(brokers)
+	if err != nil {
+		log.Printf("Error creating Kafka producer: %v", err)
+		return false
+	}
+	defer producer.Close()
+	err = kafka.SendMessage(producer, topic, "produce within the health check")
+	if err != nil {
+		log.Printf("Error sending message to Kafka topic %s: %v", topic, err)
+		return false
+	}
+	return true
 }
-func CheckConsume() {}
+
+func CheckConsume(brokers string, topic string) bool {
+	return true
+}
 
 func HealthCheckHandler(client *mongo.Client, config *config.Config) http.HandlerFunc {
 
 	return func(w http.ResponseWriter, r *http.Request) {
-		kafkaStatus := CheckKafka(config.KafkaBroker)
 		upTime := time.Now().String()
 
 		dbStatus := map[string]interface{}{
 			"connection": CheckDatabase(client),
 			"read":       CheckReadOnDB(client, config.DatabaseName),
 			"write":      CheckWriteOnDB(client, config.DatabaseName),
+		}
+
+		kafkaStatus := map[string]interface{}{
+			"connection": CheckKafka(config.KafkaBroker),
+			"produce":    CheckProduce(config.KafkaBroker, config.KafkaTopic),
+			"consume":    CheckConsume(config.KafkaBroker, config.KafkaTopic),
 		}
 
 		response := HealthCheckResponse{

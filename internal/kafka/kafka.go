@@ -37,3 +37,7 @@ func SendMessage(producer sarama.SyncProducer, topic, message string) error {
 	log.Printf("Message sent to partition %d with offset %d\n", partition, offset)
 	return nil
 }
+
+func ConsumeMessage() error {
+
+}
